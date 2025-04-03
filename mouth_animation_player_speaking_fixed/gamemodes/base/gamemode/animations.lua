@@ -271,21 +271,28 @@ end
 
 --
 -- Moves the mouth when talking on voicecom
-function GM:MouthMoveAnimation( ply )
+function GM:MouthMoveAnimation(ply)
+    if not IsValid(ply) then return end
+    if not ply.MouthTimer then
+        ply.MouthTimer = true
+        local isSpeaking = ply:IsSpeaking()
+        local weight = isSpeaking and math.Rand(0.2, 1.5) or 0
+        for _, v in ipairs({
+            ply:GetFlexIDByName("jaw_drop"),
+            ply:GetFlexIDByName("left_part"),
+            ply:GetFlexIDByName("right_part"),
+            ply:GetFlexIDByName("left_mouth_drop"),
+            ply:GetFlexIDByName("right_mouth_drop")
+        }) do
+            if v and v >= 0 then
+                ply:SetFlexWeight(v, weight)
+            end
+        end
 
-	local flexes = {
-		ply:GetFlexIDByName( "jaw_drop" ),
-		ply:GetFlexIDByName( "left_part" ),
-		ply:GetFlexIDByName( "right_part" ),
-		ply:GetFlexIDByName( "left_mouth_drop" ),
-		ply:GetFlexIDByName( "right_mouth_drop" )
-	}
-
-	local speaking = ply:IsSpeaking()
-   local weight = speaking and 1 or 0
-	for k, v in ipairs( flexes ) do
-		ply:SetFlexWeight( v, weight )
-	end
+        timer.Create("MouthUpdateTimer", math.Rand(0.1, 0.4), 1, function()
+            ply.MouthTimer = false
+        end)
+    end
 end
 
 function GM:CalcMainActivity( ply, velocity )
